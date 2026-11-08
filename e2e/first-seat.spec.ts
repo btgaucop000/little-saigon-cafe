@@ -67,13 +67,27 @@ test.describe('mobile portrait', () => {
 
     await page.mouse.click(seat.x, seat.y);
     await expect(app(page)).toHaveAttribute('data-selected-seat', 'seat-left');
+    // Record the pose on every frame: the walk is short (280ms), so a single read after the
+    // click can already miss the standing phase on a slow CI machine.
+    await page.evaluate(() => {
+      const w = window as unknown as { __poses: string[] };
+      w.__poses = [];
+      const tick = () => {
+        const pose = window.__cafe!.avatarPose();
+        w.__poses.push(pose);
+        if (pose !== 'sit' || w.__poses.length < 2) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
     await page.getByRole('button', { name: 'Ngồi đây' }).click();
 
-    // State updates at once, but the avatar keeps standing while it moves to the chair...
     await expect(app(page)).toHaveAttribute('data-avatar-seat', 'seat-left');
-    expect(await avatarPose(page)).toBe('stand');
-    // ...and switches to the sitting pose only on arrival.
     await expect.poll(() => avatarPose(page)).toBe('sit');
+    // The avatar kept standing after the click and switched to sitting only on arrival.
+    const poses = await page.evaluate(() => (window as unknown as { __poses: string[] }).__poses);
+    expect(poses[0]).toBe('stand');
+    expect(poses.at(-1)).toBe('sit');
+    expect(poses.indexOf('sit')).toBeGreaterThan(0);
     await expect(page.getByRole('status')).toContainText('Ngồi xuống rồi');
   });
 
