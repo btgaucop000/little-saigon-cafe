@@ -1,0 +1,260 @@
+:root {
+  --ink: #4a2f22;
+  --paper: #fff6e8;
+  --wood: #8a5434;
+  --wood-dark: #6b3e24;
+  --awning: #d9534a;
+  --stool: #3f7fd9;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  font-family: 'Baloo 2', 'Segoe UI', system-ui, sans-serif;
+  color: var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #f3dcc0;
+  overscroll-behavior: none;
+}
+
+.app {
+  position: fixed;
+  inset: 0;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  touch-action: none; /* we handle panning ourselves */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scene canvas {
+  display: block;
+}
+
+/* Hanging wooden sign. */
+.sign {
+  position: absolute;
+  top: calc(12px + var(--safe-top));
+  left: 16px;
+  max-width: calc(100% - 32px);
+  padding: 8px 16px 10px;
+  background: var(--wood);
+  color: var(--paper);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 -4px 0 var(--wood-dark),
+    0 6px 14px rgb(74 47 34 / 0.25);
+  pointer-events: none;
+  transform: rotate(-1.5deg);
+}
+
+.sign h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.sign p {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+/* Compact confirmation bar for the seat action: keeps the chosen chair visible above it. */
+.sheet {
+  position: absolute;
+  left: 50%;
+  bottom: calc(10px + var(--safe-bottom));
+  width: min(360px, calc(100% - 24px));
+  transform: translateX(-50%);
+  padding: 6px 10px 10px 16px;
+  background: var(--paper);
+  border-radius: 18px;
+  border: 3px solid #f0d7b4;
+  box-shadow: 0 10px 24px rgb(74 47 34 / 0.25);
+  animation: sheet-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.sheet-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Small visual mark, full 40px touch target. */
+.sheet-close {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin-right: -4px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--wood);
+  font: inherit;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sheet-close:hover {
+  background: #f3e3cc;
+}
+
+.sheet-close:focus-visible {
+  outline: 3px solid #ffc94a;
+  outline-offset: -3px;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  padding-right: 6px;
+}
+
+.btn {
+  flex: 1;
+  min-height: 46px;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 80ms;
+}
+
+.btn:active {
+  transform: translateY(2px);
+}
+
+.btn-primary {
+  flex: 2;
+  background: var(--stool);
+  color: #fff;
+  box-shadow: inset 0 -4px 0 #2c5fa8;
+}
+
+.btn-ghost {
+  background: #f3e3cc;
+  color: var(--ink);
+  box-shadow: inset 0 -3px 0 #e2c9a6;
+}
+
+.btn:focus-visible {
+  outline: 3px solid #ffc94a;
+  outline-offset: 2px;
+}
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(24px + var(--safe-bottom));
+  max-width: calc(100% - 32px);
+  padding: 10px 18px;
+  background: var(--paper);
+  border-radius: 999px;
+  box-shadow: 0 8px 20px rgb(74 47 34 / 0.22);
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  /* Starts once the avatar has reached the seat (move takes ~280ms). */
+  animation: toast 2600ms ease 300ms both;
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 24px);
+  }
+}
+
+@keyframes toast {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+  10%,
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 0);
+    visibility: hidden;
+  }
+}
+
+@media (min-width: 768px) {
+  .sign {
+    top: calc(20px + var(--safe-top));
+    left: 24px;
+    padding: 12px 22px 14px;
+  }
+  .sign h1 {
+    font-size: 1.8rem;
+  }
+  .sign p {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}
+
+/* One-time hint just above the left chair's backrest; position comes from the Pixi scene. */
+.seat-hint {
+  position: absolute;
+  /* Left-aligned to the backrest, kept on screen (pill is ~230px wide). */
+  left: clamp(8px, var(--seat-hint-x, 50%), calc(100% - 236px));
+  top: var(--seat-hint-y, 60%);
+  margin: 0;
+  padding: 5px 12px;
+  background: rgb(255 246 232 / 0.92);
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgb(74 47 34 / 0.18);
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-100%);
+  animation: seat-hint-in 400ms ease both;
+}
+
+@keyframes seat-hint-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-100% + 6px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seat-hint {
+    animation: none;
+  }
+}
